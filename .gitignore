@@ -1,0 +1,14 @@
+*__pycache__/*
+*.DS_Store*
+*.ipynb_checkpoints/*
+/nyc/data/*
+/nyc/data_clean/*
+
+/chicago/data/*.csv
+/chicago/data/*.zip
+/chicago/data_clean/*.csv
+*.png
+*/stan_output/*
+
+*__pycache__/*
+*.pyc
