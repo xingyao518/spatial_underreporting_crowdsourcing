@@ -8,17 +8,6 @@ import prepare_data.agg_df_creating as cr
 
 from settings import *
 
-"""
-To generate the processed dataframe from scratch, do the following:
-1. Create a /data/ folder in the root directory
-2. Download the following zip file and extract it into /data/: https://1drv.ms/u/s!AihXaAuJppkgoOVLDXazMN1JfBDhjQ?e=TR9aiK (Updated 12/7/2021)
-    - This has both public data downloaded from NYC Open Data and private data sent to us by the parks department.
-    - It also has the processed data, as of 12/7/2021.
-3. Run the pipeline function below
-
-Note: raw forestry data is from: https://data.cityofnewyork.us/Environment/Forestry-Service-Requests/mu46-p9is/data
-"""
-
 def pipeline():
     rawdf = raw_data_joining.from_original_data_pipeline()
     return rawdf
