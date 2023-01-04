@@ -71,11 +71,6 @@ def create_aggregated_df_from_public(settings = default_settings, FSR_file = 'da
         firstmerge = pd.merge(FSR, FI, on='SRGlobalID', how='left')
         print('SR-I merge length', firstmerge.shape[0])
         firstmerge['InsGlobalID'].fillna('0', inplace=True)
-        # firstmerge.loc[:, 'Inspected'] = 1-firstmerge['InsGlobalID'].isna()
-        # inc_inspected = firstmerge.groupby('IncidentGlobalID').agg({'Inspected': 'sum'}).reset_index()
-        # inc_inspected = inc_inspected.query('Inspected > 0')
-        # print('# incidents with inspection', inc_inspected.shape[0])
-        # firstmerge = firstmerge.query('IncidentGlobalID in @inc_inspected.IncidentGlobalID')
 
 
         # here we need to filter out the uninspected incidents
@@ -100,13 +95,11 @@ def create_aggregated_df_from_public(settings = default_settings, FSR_file = 'da
         del FRA
         gc.collect()
 
-        # secondmerge.to_csv('data_clean/secondmerge_{}_{}.csv'.format(settings['max_duration'], settings['sample_size']), index = False)
         
         # then actually do the cleaning
         aggdf = secondmerge.copy()
         del secondmerge
         gc.collect()
-        # remove one anomalous data point
         internal_data_sources = [
         'AMPS', 'DPR', 'DOT', 'Park Inspection Program', 'FDNY'
         ] # reports by non-public sources are also in the data; remove them.
@@ -125,14 +118,11 @@ def create_aggregated_df_from_public(settings = default_settings, FSR_file = 'da
         aggdf = aggdf.query('SRCreatedDate >= @first_day')
         aggdf = aggdf.query('SRCreatedDate <= @last_day')
 
-        # dfreports = aggdf.copy()
-
         print('first report time ', aggdf.SRCreatedDate.min())
         print('last report time ', aggdf.SRCreatedDate.max())
 
         first_report_and_last_modified_times = aggdf.groupby('IncidentGlobalID').agg(**{
         "first_report_datetime": pd.NamedAgg('SRCreatedDate', 'min'),
-        # "last_modified_datetime": pd.NamedAgg('LAST_MODIFIED_DATE', 'max'),
         "first_inspection_datetime": pd.NamedAgg('InspectionDate', 'min'),
         "actual_finish_date": pd.NamedAgg('ActualFinishDate', 'min')
             }).reset_index()
@@ -143,7 +133,7 @@ def create_aggregated_df_from_public(settings = default_settings, FSR_file = 'da
         
         first_report_and_last_modified_times.loc[:, 'last_day_in_dataset'] = pd.to_datetime("9/2/2022 00:00")
         
-        # calculate death time; potentially something wrong here, since we are filtering out a lot of requests
+        # calculate death time
         first_report_and_last_modified_times.loc[:,"death_time"] = \
             first_report_and_last_modified_times[['first_inspection_datetime', 'actual_finish_date', 'days_after_first_report', 'last_day_in_dataset']].min(axis = 1)
 
@@ -176,12 +166,8 @@ def create_aggregated_df_from_public(settings = default_settings, FSR_file = 'da
                'INSP_RiskAssessment': pd.NamedAgg('RiskRating', np.nanmean),
                'WOCategory': pd.NamedAgg('WOCategory', 'first'),
                'WOType': pd.NamedAgg('WOType', 'first'),
-            #    'WORating': pd.NamedAgg('WORating', np.nanmean),
                'WOPriorityCategory': pd.NamedAgg('WOPriority', 'first'),
                'TPDBH': pd.NamedAgg('TreePointDBH', np.nanmean),
-            #    'TPStructure': pd.NamedAgg('TPStructure', 'first'),
-            #    'TPCondition': pd.NamedAgg('TPCondition', 'first'),
-            #    'TPSpecies': pd.NamedAgg('TPSpecies', 'first'),
                'SRPriority': pd.NamedAgg('SRPriority', 'first'),
                'TaxClass': pd.NamedAgg('TaxClass', 'first'),
                'ComplaintType': pd.NamedAgg('ComplaintType', 'first'),
@@ -197,10 +183,6 @@ def create_aggregated_df_from_public(settings = default_settings, FSR_file = 'da
             pd.merge(aggdf, first_report_and_last_modified_times[['IncidentGlobalID','Duration']], on = 'IncidentGlobalID')
 
         aggdf.loc[:,'NumberDuplicates'] = aggdf.NumberReports - 1
-
-        # aggdf.loc[:,'SRCreatedDate'] = aggdf.SRCreatedDate.dt.to_period('M')
-        # aggdf = aggdf.sort_values(by = 'SRCreatedDate').reset_index()
-        # aggdf.SRCreatedDate = aggdf.SRCreatedDate.astype('str')
 
         print("# incidents, after filtering out created after death", aggdf.shape[0])
 
