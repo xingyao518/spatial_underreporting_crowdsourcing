@@ -126,7 +126,7 @@ if __name__ == '__main__':
     # parse the arguments
     args = parser.parse_args()
 
-    for demo_var in ['loghouseholdincome', 'logdensity', 'med_age', 'frac_hispanic', 'frac_white', 'frac_black', 'frac_noHSGrad', 'frac_collegegrad', 'frac_poverty', 'frac_renter', 'frac_single_unit']:
+    for demo_var in ['loghouseholdincome', 'logdensity', 'median_value_usd', 'frac_hispanic', 'frac_white', 'frac_black', 'frac_no_hs_degree', 'frac_college_degree', 'frac_rented', 'frac_family', 'frac_poverty', 'med_age']:
 
         covariates_cont = ['INSP_RiskAssessment', 'INSPCondtion', 'logTPDBH']
         covariates_cont.append(demo_var)

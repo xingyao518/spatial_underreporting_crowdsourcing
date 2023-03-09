@@ -24,7 +24,7 @@ Extract `nyc_data.zip` into `nyc/data/`, and extract `chicago_data.zip` into `ch
 
 #### Other data used
 
-- `nyc/data/census_organized_all.csv`, `chicago/data/census_organized_all.csv`: census tract demographic information, raw data of which were retrieved from the US Census Bureau
+- `nyc/data/census_organized_all.csv`, `chicago/data/census_organized_all.csv`: census tract demographic information, raw data of which were retrieved from the [IPUMS NHGIS](https://www.nhgis.org/)
 - `nyc/visualize/viz_data/*.*`: shapefiles used to generate spatial priors and spatial plots in NYC
 
 ## Running the models ##

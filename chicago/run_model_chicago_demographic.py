@@ -102,6 +102,6 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    for demo_var in ['avg_household_income', 'density', 'med_age', 'frac_hispanic', 'frac_white', 'frac_black', 'frac_noHSGrad', 'frac_collegegrad', 'frac_poverty', 'frac_renter', 'frac_single_unit']:
+    for demo_var in ['loghouseholdincome', 'logdensity', 'median_value_usd', 'frac_hispanic', 'frac_white', 'frac_black', 'frac_no_hs_degree', 'frac_college_degree', 'frac_rented', 'frac_family', 'frac_poverty', 'med_age']:
         print('running {} alongside category'.format(demo_var))
         run_model('chicago_demographic', iter_warmup=args.iter_warmup, iter_sampling=args.iter_sampling, max_incidents=args.max_incidents, covariates_cont = [demo_var], save_label=args.save_label+demo_var, settings_name='', show_progress=True)
