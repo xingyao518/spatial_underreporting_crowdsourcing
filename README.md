@@ -2,9 +2,9 @@
 
 ## Data preparation
 
-To get the data needed, use [this link](https://www.dropbox.com/sh/s2y580sm0vtqt27/AAChljhueTtRGou_rxVbHw6Aa?dl=0) and download the two zip files. 
+To get the data needed, use [this link](https://cornell.box.com/s/dv9i49e38njry7g56irkplfcp40mm9qh) and download the two folders. 
 
-Extract `nyc_data.zip` into `nyc/data/`, and extract `chicago_data.zip` into `chicago/data/`.
+Move files in `nyc_data/` into `nyc/data/`, and `chicago_data/` into `chicago/data/`.
 
 ### Data description
 
