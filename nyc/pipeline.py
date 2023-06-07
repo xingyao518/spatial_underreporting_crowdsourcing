@@ -14,7 +14,7 @@ def pipeline():
 
 
 def pipeline_with_aggdf(settings_name=settings_default_name, rawdf=None, settings=None, aggdf_folder=aggdf_folder_default, remove_low_categories=True):
-    if '{}.csv'.format(settings_name) in os.listdir(aggdf_folder):
+    if os.path.exists(aggdf_folder) and '{}.csv'.format(settings_name) in os.listdir(aggdf_folder):
         return pd.read_csv(os.path.join(aggdf_folder, '{}.csv'.format(settings_name)))
 
     # either we're using a dataframe that is already saved, or passing in a settings dictionary to create a new aggdf

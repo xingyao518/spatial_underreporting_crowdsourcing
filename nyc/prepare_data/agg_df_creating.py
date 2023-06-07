@@ -66,6 +66,11 @@ def create_aggregate_df(df, settings):
                'SRClosedDate': pd.NamedAgg('SRClosedDate', 'max'),
                }
 
+    keep_inspection_workorder_datetimes = settings.get('keep_inspection_workorder_datetimes', False)
+    if keep_inspection_workorder_datetimes:
+        aggdict['first_inspection_datetime'] = pd.NamedAgg('InspectionDate', 'min')
+        aggdict['first_workorder_datetime'] = pd.NamedAgg('ActualFinishDate', 'min')
+
     aggdf = df.groupby("IncidentGlobalID").agg(**aggdict).reset_index()
 
     aggdf = pd.merge(aggdf, first_report_and_inspection_times[[
@@ -121,8 +126,14 @@ def join_census_info_to_df(df):
 def finalize_aggdf(aggdf, remove_low_categories=False):
     print('finalizing aggdf, unique incidents starting: ',
           aggdf.IncidentGlobalID.nunique())
-    aggdf.loc[:, 'loghouseholdincome'] = aggdf.eval(
-        'log(avg_household_income)')
+    
+    if 'avg_household_income' in aggdf.columns:
+        aggdf.loc[:, 'loghouseholdincome'] = aggdf.eval(
+            'log(avg_household_income)')
+    else:
+        aggdf.loc[:, 'loghouseholdincome'] = aggdf.eval(
+                'log(median_household_income)')
+
     aggdf.loc[:, 'logdensity'] = aggdf.eval('log(density + 1)')
     aggdf.loc[:, 'logTPDBH'] = aggdf.eval('log(TPDBH+1)')
     if remove_low_categories:

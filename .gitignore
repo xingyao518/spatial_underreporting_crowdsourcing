@@ -12,3 +12,7 @@
 
 *__pycache__/*
 *.pyc
+
+/nyc/impact_analysis/plots/*
+/nyc/impact_analysis/old_analyses/*
+/nyc/impact_analysis/__pycache__/*
