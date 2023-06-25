@@ -26,8 +26,7 @@ def generate_summary_table_from_raw_df(df, groupby = None):
                                                             }).reset_index()
     first_report_and_inspection_times.loc[:, 'days_after_first_report'] = first_report_and_inspection_times.first_report_datetime + \
         pd.Timedelta(100, unit='D')
-    first_report_and_inspection_times.loc[:, 'death_time'] = first_report_and_inspection_times[[
-        'days_after_first_report', 'workorder_datetime', 'first_inspection_datetime']].min(axis=1)
+    first_report_and_inspection_times.loc[:, 'death_time'] = first_report_and_inspection_times['first_inspection_datetime']
 
     first_report_and_inspection_times.loc[:, 'Duration'] = (
         first_report_and_inspection_times.death_time - first_report_and_inspection_times.first_report_datetime).dt.total_seconds() / (60 * 60 * 24)  # Duration in days
@@ -40,7 +39,7 @@ def generate_summary_table_from_raw_df(df, groupby = None):
     
     
     unique_incidents = df.query('Inspected == 1').groupby(groupby)['IncidentGlobalID'].nunique().sort_values(ascending=False).reset_index().rename(columns = {'IncidentGlobalID': 'Unique Incidents'})
-    inspection_delays = df.query('(Inspected == 1) and (Duration > 0)').drop_duplicates(subset = ['IncidentGlobalID']).groupby(groupby)['Duration'].median().reset_index().rename(columns = {'Duration': 'Median Time to Inspection (Days)'})
+    inspection_delays = df.query('(Inspected == 1)').drop_duplicates(subset = ['IncidentGlobalID']).groupby(groupby)['Duration'].median().reset_index().rename(columns = {'Duration': 'Median Time to Inspection (Days)'})
     
     inspection_delays.loc[:, 'Median Time to Inspection (Days)'] = inspection_delays['Median Time to Inspection (Days)'].round(2)
     
