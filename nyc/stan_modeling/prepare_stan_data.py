@@ -53,14 +53,17 @@ class NumpyEncoder(json.JSONEncoder):
 
 
 def get_data_dictionary(aggdf, modelname, maxdatapoints=None, covariates_cont=None, tract11_or_block12 = 11):
+    if "observables" in modelname:
+        return get_data_dictionary_observables(aggdf, modelname, maxdatapoints=maxdatapoints, covariates_cont=covariates_cont, tract11_or_block12 = tract11_or_block12)
+
     column_names = {}  # used for plotting (saving the order of the columns)
     covariates = []  # ['Category']
     othercov = covariates_cont
     covariates += othercov
     
     ## sort the months for easier sequencing
-    if modelname=='basic_zeroinflated_temporal':
-        aggdf.SRCreatedDate = aggdf.SRCreatedDate.dt.to_period('M')
+    if "temporal" in modelname:
+        aggdf.SRCreatedDate = aggdf.SRCreatedDate.astype('datetime64[ns]').dt.to_period('M')
         aggdf = aggdf.sort_values(by = 'SRCreatedDate').reset_index()
         aggdf.SRCreatedDate = aggdf.SRCreatedDate.astype('str')
 
@@ -102,29 +105,78 @@ def get_data_dictionary(aggdf, modelname, maxdatapoints=None, covariates_cont=No
         'NumberDuplicates ~ 0 + Category', data=aggdfloc)
     X_category = np.asarray(X_category_dm)
 
-    _, X_month_dm = dmatrices(
-        'NumberDuplicates ~ 0 + SRCreatedDate', data=aggdfloc)
-    X_month = np.asarray(X_month_dm)
+    if "temporal" in modelname:
+        _, X_month_dm = dmatrices(
+            'NumberDuplicates ~ 0 + SRCreatedDate', data=aggdfloc)
+        X_month = np.asarray(X_month_dm)
 
-    column_names['Month'] = X_month_dm.design_info.column_names
+        column_names['Month'] = X_month_dm.design_info.column_names
 
     column_names['X'] = Xdm.design_info.column_names[1:]
     column_names['Borough'] = X_borough_dm.design_info.column_names
     column_names['Category'] = X_category_dm.design_info.column_names
+    column_names['Category_Zeroinflation']= ['{}_inflation'.format(X) for X in X_category_dm.design_info.column_names]
 
     ones = np.ones(len(y))
     data = {"N_incidents": len(y), "y": y, "duration": duration, "X": X, "X_borough": X_borough, "X_category": X_category,
-            "N_category": np.shape(X_category)[1], "ones": ones, "covariate_matrix_width": np.shape(X)[1], "X_month": X_month, "N_month": np.shape(X_month)[1]}
+            "N_category": np.shape(X_category)[1], "ones": ones, "covariate_matrix_width": np.shape(X)[1]}
+    
+
+    if "interaction" in modelname:
+        _, X_borough_category_dm = dmatrices(
+            'NumberDuplicates ~ 1 + Borough + Category + Borough:Category', data=aggdfloc)
+        X_borough_category = np.asarray(X_borough_category_dm)[:, -16:]  # remove intercept and the single terms
+        data['X_borough_category'] = X_borough_category
+        data['N_borough_category'] = np.shape(X_borough_category)[1]
+        column_names['Borough_Category'] = X_borough_category_dm.design_info.column_names[-16:]
+    
+    if "riskbin" in modelname:
+        # Define a function to apply the mapping to each row
+        def map_priority(risk):
+            if np.isnan(risk):
+                return 'Unknown'
+            if risk <3: 
+                return 'E'
+            if risk < 9:
+                return 'D'
+            if risk < 10:
+                return 'C'
+            if risk < 11:
+                return 'B'
+            return 'A'
+
+        # Apply the function to each row of the DataFrame
+        aggdfloc['Risk_coded'] = aggdfloc['INSP_RiskAssessment'].apply(map_priority)
+
+        _, X_risk_dm = dmatrices(
+            'NumberDuplicates ~ 0 + Risk_coded', data=aggdfloc)
+        X_risk = np.asarray(X_risk_dm)
+        data['X_risk'] = X_risk
+        data['N_risk'] = np.shape(X_risk)[1]
+        column_names['Risk'] = X_risk_dm.design_info.column_names
+
+        _, X_borough_riskbin_dm = dmatrices(
+            'NumberDuplicates ~ 1 + Borough + Risk_coded + Borough:Risk_coded', data=aggdfloc)
+        X_borough_riskbin = np.asarray(X_borough_riskbin_dm)[:, -4*(data['N_risk'] -1):]  # remove intercept and the single terms
+        data['X_borough_riskbin'] = X_borough_riskbin
+        data['N_borough_riskbin'] = np.shape(X_borough_riskbin)[1]
+        column_names['Borough_Riskbin'] = X_borough_riskbin_dm.design_info.column_names[-4*(data['N_risk'] -1):]
  
 
-    if modelname in ['basic', 'basic_zeroinflated', 'basic_zeroinflated_noborough', 'basic_zeroinflated_temporal']:
+    if "temporal" in modelname:
+        data['X_month'] = X_month
+        data['N_month'] = np.shape(X_month)[1]
+
+    if modelname in ['basic', 'basic_zeroinflated', 'basic_zeroinflated_noborough', \
+                     'basic_zeroinflated_temporal', 'basic_zeroinflated_temporal_year', 'basic_zeroinflated_bycategory','basic_zeroinflated_gen_delay',\
+                     'basic_zeroinflated_borough_category_interaction', "basic_zeroinflated_only_interaction",
+                     "basic_zeroinflated_riskbin"]:
         if modelname == 'basic_zeroinflated_noborough':
             del data['X_borough']
         
         return data, column_names, standardization_dict
 
-    aggdfloc.loc[:, 'census_tract'] = aggdfloc.loc[:,
-                                                   'census_tract'].apply(lambda x: str(int(x))[0:tract11_or_block12])
+    aggdfloc.loc[:, 'census_tract'] = aggdfloc.loc[:,'census_tract'].apply(lambda x: str(int(x))[0:tract11_or_block12])
     _, X_tract_dm = dmatrices(
         'NumberDuplicates ~ 0 + census_tract', data=aggdfloc)
     X_tract = np.asarray(X_tract_dm)
@@ -145,3 +197,44 @@ def get_data_dictionary(aggdf, modelname, maxdatapoints=None, covariates_cont=No
         return data, column_names, standardization_dict
 
     assert False
+
+
+def get_data_dictionary_observables(aggdf, modelname, maxdatapoints=None, covariates_cont=None, tract11_or_block12 = 11):
+    column_names = {}  
+    
+    if maxdatapoints is not None:
+        aggdf = aggdf.iloc[0:maxdatapoints, :]
+
+    colstodo = ['NumberDuplicates', 'Duration'] + ['Borough'] + ['Category']
+    aggdfloc = aggdf.dropna(subset=colstodo)
+
+    ydm, _ = dmatrices(
+        'NumberDuplicates ~ 1', data=aggdfloc) 
+    y = [int(yy[0]) for yy in np.asarray(ydm)]
+
+    duration = (aggdfloc.Duration).values
+
+    _, X_borough_dm = dmatrices(
+        'NumberDuplicates ~ 0 + Borough', data=aggdfloc)
+    X_borough = np.asarray(X_borough_dm)
+
+    _, X_category_dm = dmatrices(
+        'NumberDuplicates ~ 0 + Category', data=aggdfloc)
+    X_category = np.asarray(X_category_dm)
+
+    column_names['Borough'] = X_borough_dm.design_info.column_names
+    column_names['Category'] = X_category_dm.design_info.column_names
+
+    ones = np.ones(len(y))
+    data = {"N_incidents": len(y), "y": y, "duration": duration, "X_borough": X_borough, "X_category": X_category,
+            "N_category": np.shape(X_category)[1], "ones": ones}
+    
+    _, X_borough_category_dm = dmatrices(
+        'NumberDuplicates ~ 1 + Borough + Category + Borough:Category', data=aggdfloc)
+    X_borough_category = np.asarray(X_borough_category_dm)[:, -16:]  # remove intercept and the single terms
+    data['X_borough_category'] = X_borough_category
+    data['N_borough_category'] = np.shape(X_borough_category)[1]
+    column_names['Borough_Category'] = X_borough_category_dm.design_info.column_names[-16:]
+    
+    return data, column_names, 0
+
