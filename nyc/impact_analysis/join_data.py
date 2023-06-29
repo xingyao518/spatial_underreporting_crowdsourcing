@@ -29,7 +29,7 @@ FI_columns = ['InspectionType', 'InspectionStatus',
 FWO_columns = ['WOType', 'WOStatus', 'WOPriority',
        'InspectionGlobalID', 'GlobalID', 'ClosedDate',
        'CancelDate', 'CancelReason','CreatedDate', 'UpdatedDate', 'WOEntity', 
-       'PROJSTARTDATE', 'WOProject', 'WOCategory', 'RecommendedSpecies', 'Location']
+       'PROJSTARTDATE', 'WOProject', 'WOCategory', 'RecommendedSpecies', 'Location', 'ActualFinishDate']
 
 FRA_columns = ['RADefect', 'RADefectLocation', 'Failure', 'ImpactTarget',
        'Consequence', 'RiskRating', 'InspectionGlobalID', 'GlobalID',
@@ -107,7 +107,7 @@ def postprocess(df, cols_to_keep = cols_to_keep):
     # df['initiated_year'] = pd.DatetimeIndex(df['initiateddate']).year
     # df['initiated_month'] = pd.DatetimeIndex(df['initiateddate']).month
   
-    datecols = ['SRCreatedDate', 'InspectionDate', 'WOClosedDate', 'SRClosedDate']
+    datecols = ['SRCreatedDate', 'InspectionDate', 'WOClosedDate', 'SRClosedDate','ActualFinishDate']
     for col in datecols:
         df[col] = pd.to_datetime(df[col],errors='coerce')    
     

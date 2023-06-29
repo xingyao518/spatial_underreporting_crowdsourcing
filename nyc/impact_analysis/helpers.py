@@ -34,11 +34,12 @@ def plot_bar_and_print(dffbar, label = ''):
         for en, bar in enumerate(barconts):
             widthsofar = legthssofar.get(en, 0)
             width = bar.get_width()
-            startwidth = max(widthsofar + width/2 - .5, widthsofar + .25)
+            startwidth = max(widthsofar + width/2 - .3, widthsofar + .25)
             if widthsofar == 0:
-                startwidth = widthsofar + width/2 - .5
-            ax.text(startwidth, bar.get_y() + bar.get_height()+.1, '{:.1f}'.format(width) , ha='left', va='center', fontsize = 9)
-            legthssofar[en] = widthsofar + width
+                startwidth = widthsofar + width/2 - min(.3, width/3)
+            if np.round(width)>0:
+                ax.text(startwidth, bar.get_y() + bar.get_height()+.1, '{:.0f}'.format(width) , ha='left', va='center', fontsize = 9)
+            legthssofar[en] = max(widthsofar + width, startwidth)
 
         
     sns.despine()
