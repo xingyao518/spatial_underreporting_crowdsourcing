@@ -159,8 +159,8 @@ def add_census_tracts(aggdf, settings, sr_to_census_file = 'data/SR_to_census_tr
 def add_census_demographics(aggdf, settings, census_attributes_file = 'data/census_organized_all.csv'):
     demographics = pd.read_csv(census_attributes_file, dtype = {'FIPS_BG': str})
     demographics.rename(columns = {'FIPS_BG': 'census_tract12'}, inplace = True)
-    demographics.loc[:, 'avg_household_income'] = np.log(demographics.avg_household_income)
-    demographics.loc[:, 'density'] = np.log(demographics.density)
+    demographics.loc[:, 'loghouseholdincome'] = np.log(demographics.median_household_income)
+    demographics.loc[:, 'logdensity'] = np.log(demographics.density)
 
     mergeddf = pd.merge(aggdf, demographics, on = 'census_tract12')
     print("Number of unique incidents, after merging with census demographics", mergeddf.shape[0])

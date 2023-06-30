@@ -33,20 +33,22 @@ def run_model(modelname,
         'STAN_CPP_OPTIMS': True
         }
 
-        if force_compile:
-            comp= "force"
-        else:
-            comp = True
-        model = CmdStanModel(stan_file=stan_file, cpp_options=cpp_options,
-                            model_name=savefilename, compile = comp)
-        print(model)
-    ## load and prepare data
+        ## load and prepare data
         if settings_name == None:
             _, _, aggdf = pipeline_with_settings(default_settings)
         elif settings_name == '30':
             _, _, aggdf = pipeline_with_settings(thirty_settings)
         elif settings_name == '200':
             _, _, aggdf = pipeline_with_settings(two_hundred_settings)
+
+        if force_compile:
+            comp= "force"
+        else:
+            comp = True
+        model = CmdStanModel(stan_file=stan_file, #cpp_options=cpp_options,
+                            model_name=savefilename, compile = comp)
+        print(model)
+
 
         if max_incidents>0 and max_incidents<aggdf.shape[0]:
             aggdf = aggdf.sample(max_incidents, random_state=1)

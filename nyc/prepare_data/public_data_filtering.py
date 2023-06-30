@@ -213,7 +213,7 @@ def create_aggregated_df_from_public(settings = default_settings, FSR_file = 'da
 
 def add_census_demographics(aggdf, settings, census_attributes_file = 'data/census_organized_all.csv'):
     demographics = pd.read_csv(census_attributes_file, dtype = {'FIPS_BG': str})
-    demographics.rename(columns = {'FIPS_BG': 'census_tract'}, inplace = True)
+    demographics.rename(columns = {'FIPS_BG': 'census_tract', 'median_household_income':'avg_household_income'}, inplace = True)
     demographics.loc[:, 'loghouseholdincome'] = demographics.eval("log(avg_household_income + 1)")
     demographics.loc[:, 'logdensity'] = demographics.eval("log(density + 1)")
 

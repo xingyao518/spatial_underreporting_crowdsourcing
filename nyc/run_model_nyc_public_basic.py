@@ -44,7 +44,7 @@ def run_model(modelname,
         comp= "force"
     else:
         comp = True
-    model = CmdStanModel(stan_file=stan_file, cpp_options=cpp_options,
+    model = CmdStanModel(stan_file=stan_file, #cpp_options=cpp_options,
                          model_name=savefilename, compile = comp)
     print(model)
 

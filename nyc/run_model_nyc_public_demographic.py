@@ -105,7 +105,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
     # add arguments to the parser
-    parser.add_argument("modelname", type = str, default = "basic_zeroinflated")
+    parser.add_argument("--modelname", type = str, default = "basic_zeroinflated")
     parser.add_argument("--savelabel", type=str, default='')
     parser.add_argument("--treesrootdirectory", type=str,
                         default='/home/zl724/trees/nyc/')
