@@ -140,6 +140,7 @@ def pipeline(directory = './311data_2022/', FSR_columns = FSR_columns, FI_column
         df.to_csv(combinedfilename, index=False) #, compression=compression_opts 
     
     else:
+        print('loading already existing file')
         df = pd.read_csv(combinedfilename)
         
     df = postprocess(df, cols_to_keep)
